@@ -48,6 +48,28 @@ test("Queue#flush should be recursive if new items are added", function() {
 
 });
 
+test("Queue#flush should handle errors", function() {
+  expect(2);
+
+  var bb = new Backburner(['one']), count = 0;
+
+  bb.run(function() {
+    bb.schedule('one', function() {
+      count++;
+    });
+
+    bb.schedule('one', function() {
+      throw 'Error';
+    });
+
+    equal(count, 0, 'should not have run yet');
+
+    bb.currentInstance.queues.one.flush();
+    equal(count, 1, 'should have run all scheduled methods');
+  });
+
+});
+
 test("Default queue is automatically set to first queue if none is provided", function() {
   var bb = new Backburner(['one', 'two']);
   equal(bb.options.defaultQueue, 'one');
